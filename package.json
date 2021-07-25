@@ -1,0 +1,37 @@
+{
+  "name": "paralogger",
+  "version": "0.1.0",
+  "description": "A customisable logger for node.js and the web",
+  "main": "lib/index",
+  "scripts": {
+    "build": "tsc",
+    "postinstall": "tsc"
+  },
+  "keywords": [
+    "library",
+    "logger",
+    "node",
+    "web"
+  ],
+  "author": {
+    "name": "Reuben Tier",
+    "url": "https://github.com/TheOtterlord",
+    "email": "reuben.tier@icloud.com"
+  },
+  "homepage": "https://theotterlord.github.io/paralogger",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheOtterlord/paralogger"
+  },
+  "bugs": {
+    "url": "https://github.com/TheOtterlord/paralogger/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@duxcore/eventra": "^1.0.2"
+  }
+}
