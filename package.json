@@ -1,11 +1,11 @@
 {
   "name": "paralogger",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A customisable logger for node.js",
   "main": "lib/index",
   "scripts": {
     "build": "tsc",
-    "postinstall": "tsc"
+    "prepublish": "tsc"
   },
   "keywords": [
     "library",
