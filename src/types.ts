@@ -1,30 +1,19 @@
-export interface LoggerEvents {
-  fatal: (msg: Message) => void
-  error: (msg: Message) => void
-  warn:  (msg: Message) => void
-  info:  (msg: Message) => void
-  debug: (msg: Message) => void
-  trace: (msg: Message) => void
-  log: (msg: Message) => void
-  writeCache: (cache: Message[]) => void
+export interface LogEvents {
+  fatal: (log: Log) => void
+  error: (log: Log) => void
+  warn:  (log: Log) => void
+  info:  (log: Log) => void
+  debug: (log: Log) => void
+  trace: (log: Log) => void
+  log: (log: Log) => void
+  writeCache: (cache: Log[]) => void
 }
 
-export const logColors = {
-  fatal: '\x1B[31m\x1B[1m',
-  error: '\x1B[31m',
-  warn:  '\x1b[33m',
-  info:  '\x1b[32m',
-  debug: '\x1b[36m',
-  trace: '\x1b[90m',
-  reset: '\x1b[0m'
-};
+export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
 
-/**
- * A log level to filter by.
- */
-export type LogLevel = "info" | "debug" | "trace"
-
-export interface Message {
-  level: string
+export interface Log {
+  scope: string
+  level: LogLevel
+  timestamp: Date
   message: string
 }

@@ -3,8 +3,8 @@
 ![npm](https://img.shields.io/npm/v/paralogger)
 ![npm](https://img.shields.io/npm/dm/paralogger)
 
-Paralogger is a customisable logger for node.js and the web.
-It is built ontop of the [Eventra](https://github.com/duxcore/eventra) event emitter so you have full control over how logs are broadcast/stored.
+Paralogger is a completely customisable logger built upon it's own standard.
+You seperate your logs into different scopes, filter through log levels, and ultimately decide how you display, store, or broadcast them.
 
 ## Installation
 
@@ -20,60 +20,55 @@ yarn add paralogger
 
 ## Usage
 
-Create a logger instance to begin working with paralogger.
+Create a logger instance to begin working with paralogger, defining a scope or leaving it to the default (SYSTEM).
 
 ```ts
-const logger = new Logger('my-logger')
+const logger = new Logger('CUSTOM')
 ```
 
-Optionally, use log levels to filter what logs are allowed. `info`, `warn`, `error` and `fatal` are always allowed.
+## Standard
 
-Enable `debug` with the `debug` level.
-Or enable `debug` and `trace` with the `trace` level.
+A log is made up of 4 properties.
 
-```ts
-const logger = new Logger('my-logger', 'trace')
+- `scope` - The name of the logger instance
+- `level` - The level of the log
+- `timestamp` - The time the log was created
+- `message` - The text contents of the log
+
+You assign the scope when you create your logger instance.
+You may have multiple logger instances, so this helps you keep track of a log's origins.
+
+The level of a log details what the log is for.
+The supported log levels are.
+
+- `fatal` - Severe runtime errors that cause the application or subprocess to unexpectedly crash
+- `error` - A non-fatal runtime error or other unusual conditional events
+- `warn` - For use of deprecated items and important non-error events that should be looked at.
+- `info` - Used for basic system events like started or stopped
+- `debug` - Contains information useful for debugging issues with the application, such as internal state, etc.
+- `trace` - The most detailed logs, useful for logging things like network traffic, login attemps, etc.
+
+Timestamps should be presented in UTC or local time depending on the requirements of the project.
+UTC is recommended where possible to avoid confusion for people in different zones to the deployment or for projects with deployments in multiple timezones.
+
+Messages are a string, and should be single line when possible.
+You may wish to apply your own standard for certain logs, like REST API logs, etc.
+
+Logging to the console can be added using the following steps.
+
+1. Import `logToConsole` from paralogger
+2. Call `.on('log', logToConsole())` with your logger instance
+
+This adds an event handler to log to the console.
+You can remove the colors by passing the `colorful` argument as false.
+This is the format that the `logToConsole()` handler uses.
+
+```
+YYYY-MM-DD HH:MM:SS {SCOPE} {LEVEL} {MESSAGE}
 ```
 
-The full list of parameters are below.
-
-- `name: string` - name of the logger
-- `level: 'info' | 'debug' | 'trace'` (default: 'info') - level of logging allowed
-- `cacheSize: number` (default: 100) - max size of the cache before writing
-- `consoleLog: boolean` (default: true) - whether to enable builtin console logging
-
-### Outputting logs
-
-By default, the only builtin output is the console, and even that is optional.
-This allows paralogger to work anywhere, even on the web.
-Instead, you can create output vectors for your logs, depending on what you need.
-
-For example, here is a listener that will write logs to a file when the cache is cleared:
-
-```ts
-const logger = new Logger('my-logger')
-
-logger.on('writeCache', (cache) => {
-  fs.appendFile('my_logger.txt', cache.map(m => m.message).join('\n')+'\n', 'utf8', (err) => {
-    if (err) logger.error('Failed to write cache to file')
-  })
-})
-
-logger.info('Write me to file')
-logger.writeCache()
-```
-
-This could even be used to send a direct message to a discord bot developer if their bot dies!
-
-```ts
-logger.on('fatal' async (log) => {
-  const dev = await bot.users.fetch(DEVELOPER_ID)
-  const dm = dev.createDM()
-  dm.send(`Fatal Error!\n${log.message}`)
-})
-```
-
-But the gist of it is that no matter what your requirements, just add a listener, and reroute the logs to wherever you wish.
+You can also create your own handlers and add them to any of the events.
+A handler will be passed a `Log` object containing the 4 properties mentioned above.
 
 ## Contributing
 
@@ -82,4 +77,4 @@ If you wish to add something to paralogger, please make an issue to discuss it f
 
 ## License
 
-Distributed under an MIT license.
+Distributed under the [MIT](https://choosealicense.com/licenses/mit/) license.

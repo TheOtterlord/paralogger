@@ -1,24 +1,19 @@
-import { Eventra } from "@duxcore/eventra";
-import { logColors, LoggerEvents, LogLevel, Message } from "./types";
+import { TypedEmitter } from 'tiny-typed-emitter'
+import { LogEvents, LogLevel, Log } from "./types"
 
-export default class Logger extends Eventra<LoggerEvents> {
-  cache: Message[] = []
-  name: string
+export default class Logger extends TypedEmitter<LogEvents> {
+  cache: Log[] = []
+  scope: string
   cacheSize: number
-  logLevel: string
 
   /**
-   * @param name The name of the logger.
-   * @param level The log level to use.
+   * @param scope The name of the logger.
    * @param cacheSize The number of messages to cache before emptying and emitting writeCache.
-   * @param consoleLog Whether to log to the console.
    */
-  constructor(name: string, logLevel: LogLevel = 'info', cacheSize = 100, consoleLog = true) {
+  constructor(scope='SYSTEM', cacheSize = 100) {
     super()
-    this.name = name
+    this.scope = scope
     this.cacheSize = cacheSize
-    this.logLevel = logLevel
-    if (consoleLog) this.on('log', logToConsole(true))
   }
 
   /**
@@ -35,10 +30,12 @@ export default class Logger extends Eventra<LoggerEvents> {
    * @param message The message to log.
    * @param forceCWriteCache Whether to force the writeCache event.
    */
-  log(level: keyof LoggerEvents, message: string, forceWriteCache = false) {
-    const log: Message = {
+  log(level: LogLevel, message: string, forceWriteCache = false) {
+    const log: Log = {
       level,
-      message: `[${this.time()}] ${this.name}(${level}): ${message}`
+      message,
+      scope: this.scope,
+      timestamp: new Date()
     }
     this.cache.push(log)
     if (this.cache.length >= this.cacheSize || forceWriteCache) this.writeCache()
@@ -46,23 +43,16 @@ export default class Logger extends Eventra<LoggerEvents> {
     this.emit(level, log)
   }
 
-  fatal(message: string) { this.log("fatal", message) }
-  error(message: string) { this.log("error", message) }
-  warn(message: string)  { this.log("warn",  message) }
-  info(message: string)  { this.log("info",  message) }
-  debug(message: string) { if (this.logLevel === 'debug' || this.logLevel === 'trace') this.log("debug", message) }
-  trace(message: string) { if (this.logLevel === 'trace') this.log("trace", message) }
-
-  /**
-   * Returns a string with the current time in ISO format.
-   */
-  time() {
-    return new Date().toISOString()
-  }
+  fatal(message: string, forceWriteCache=false) { this.log("fatal", message, forceWriteCache) }
+  error(message: string, forceWriteCache=false) { this.log("error", message, forceWriteCache) }
+  warn(message: string, forceWriteCache=false)  { this.log("warn",  message, forceWriteCache) }
+  info(message: string, forceWriteCache=false)  { this.log("info",  message, forceWriteCache) }
+  debug(message: string, forceWriteCache=false) { this.log("debug", message, forceWriteCache) }
+  trace(message: string, forceWriteCache=false) { this.log("trace", message, forceWriteCache) }
 
   /**
    * Starts a timer and returns a function to stop the timer.
-   * Calling the function to stop the timer will return the time elapsed since the timer was started.
+   * Calling the function to stop the timer will return the time elapsed since the timer was started (in milliseconds).
    */
   timer() {
     const t1 = performance.now()
@@ -80,23 +70,17 @@ export default class Logger extends Eventra<LoggerEvents> {
 }
 
 /**
- * Returns a function that logs messages to the console.
- * You can toggle colors with `useColors` (default: true).
- * 
- * Example:
- * ```ts
- * const logger = new Logger('my-logger')
- * // with colors
- * logger.on('log', logToConsole())
- * // without colors
- * logger.on('log', logToConsole(false))
- * ```
+ * Creates a handler to log to the console.
+ * @param colorful Whether to use colors.
  */
-export function logToConsole(useColors = true) {
-  return (message: Message) => {
-    let log: string
-    if (useColors) log = `${logColors[message.level]}${message.message}${logColors['reset']}`
-    else log = message.message
-    console.log(log)
+export function logToConsole(colorful=true) {
+  return (log: Log) => {
+    console.log(
+      colorful ? '\x1b[90m%s\x1b[0m %s \x1b[36m%s\x1b[0m %s' : '%s %s %s %s',
+      log.timestamp.toISOString().split('.')[0].replace('T', ' '),
+      log.scope,
+      log.level,
+      log.message
+    )
   }
 }
